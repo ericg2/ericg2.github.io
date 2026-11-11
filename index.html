@@ -45,7 +45,7 @@
         document.getElementById('linux-repo-status').textContent = 'Linux package repository status is temporarily unavailable.';
       });
     </script>
-    <p class="note">The hosted APT and RPM repositories currently use HTTPS transport but do not yet publish signed repository metadata. APT and DNF repository signature verification is therefore disabled by the installer. For higher-assurance deployments, download packages from the GitHub Releases page and verify the published SHA-256 checksum.</p>
+    <p class="note">The hosted APT and RPM repositories currently use HTTPS transport but do not yet publish signed repository metadata. APT, DNF and Zypper signature verification is therefore disabled by the installer. For higher-assurance deployments, download packages from the GitHub Releases page and verify the published SHA-256 checksum.</p>
   </section>
   <section class="section grid">
     <article class="card"><h2>Windows</h2><p>Download the versioned Windows installer and run it. The installer keeps Vaulton updated without a separate updater service.</p><a href="https://github.com/ericg2/Vaulton-UI/releases/latest">Windows downloads →</a><pre>irm https://ericg2.github.io/install.ps1 | iex</pre></article>
