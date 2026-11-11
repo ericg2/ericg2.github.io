@@ -42,7 +42,7 @@ jobs:
           set -euo pipefail
           mkdir -p _site
           cp index.html install.sh install.ps1 _site/
-          if [[ -f keys/vaulton-archive-keyring.gpg ]]; then mkdir -p _site/keys; cp keys/vaulton-archive-keyring.gpg _site/keys/; fi
+          if [[ -f keys/vaulton-archive-keyring.gpg && -f keys/vaulton-archive-key.asc ]]; then mkdir -p _site/keys; cp keys/vaulton-archive-keyring.gpg keys/vaulton-archive-key.asc _site/keys/; fi
           api='https://api.github.com/repos/ericg2/Vaulton-UI/releases/latest'
           release="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: Vaulton-Pages' "$api")"
           tag="$(jq -r '.tag_name' <<<"$release")"
@@ -111,7 +111,7 @@ jobs:
               apt-ftparchive release dists/stable >> dists/stable/Release
             )
             if [[ -n "${VAULTON_REPO_SIGNING_KEY_BASE64:-}" ]]; then
-              test -s _site/keys/vaulton-archive-keyring.gpg || { echo "Repository signing secret is set but the public key file is missing."; exit 1; }
+              test -s _site/keys/vaulton-archive-keyring.gpg && test -s _site/keys/vaulton-archive-key.asc || { echo "Repository signing secret is set but one or more public key files are missing."; exit 1; }
               mkdir -m 700 /tmp/vaulton-gnupg
               export GNUPGHOME=/tmp/vaulton-gnupg
               printf '%s' "$VAULTON_REPO_SIGNING_KEY_BASE64" | base64 --decode > /tmp/vaulton-private.asc
@@ -123,7 +123,7 @@ jobs:
 
               rpm_file="$(find _site/rpm -maxdepth 1 -name '*.rpm' -print -quit)"
               test -n "$rpm_file"
-              rpm --import _site/keys/vaulton-archive-keyring.gpg
+              rpm --import _site/keys/vaulton-archive-key.asc
               rpmsign --define "_gpg_name $fingerprint" --addsign "$rpm_file"
 
               gpg --batch --yes --local-user "$fingerprint" --clearsign --output _site/apt/dists/stable/InRelease _site/apt/dists/stable/Release
