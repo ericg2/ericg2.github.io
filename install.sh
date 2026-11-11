@@ -32,7 +32,25 @@ case "$ids" in
     sudo apt-get update
     sudo apt-get install -y vaulton
     ;;
-  *" fedora "*|*" rhel "*|*" centos "*|*" rocky "*|*" almalinux "*|*" suse "*|*" opensuse "*)
+  *" suse "*|*" opensuse "*)
+    command -v zypper >/dev/null 2>&1 || fail "Zypper is not installed."
+    command -v sudo >/dev/null 2>&1 || fail "Install sudo, then run this script again."
+    say "Configuring the Vaulton Zypper repository..."
+    sudo install -d -m 0755 /etc/zypp/repos.d
+    sudo sh -c "cat > /etc/zypp/repos.d/vaulton.repo" <<EOF
+[vaulton]
+name=Vaulton
+baseurl=$REPO_BASE/rpm/
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+type=rpm-md
+EOF
+    say "Installing Vaulton..."
+    sudo zypper refresh
+    sudo zypper install -y vaulton
+    ;;
+  *" fedora "*|*" rhel "*|*" centos "*|*" rocky "*|*" almalinux "*)
     command -v dnf >/dev/null 2>&1 || fail "DNF is not installed. This installer currently supports DNF-based RPM distributions."
     command -v sudo >/dev/null 2>&1 || fail "Install sudo, then run this script again."
     say "Configuring the Vaulton DNF repository..."
