@@ -32,12 +32,14 @@ jobs:
       - name: Install repository metadata tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev apt-utils createrepo-c
+          sudo apt-get install -y dpkg-dev apt-utils createrepo-c rpm
 
-      - name: Build APT and DNF repositories
+      - name: Build validated APT and DNF repositories
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p _site
+          cp index.html install.sh install.ps1 _site/
           api='https://api.github.com/repos/ericg2/Vaulton-UI/releases/latest'
           release="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: Vaulton-Pages' "$api")"
           tag="$(jq -r '.tag_name' <<<"$release")"
@@ -50,31 +52,46 @@ jobs:
           rpm_url="$(jq -r --arg n "$rpm_name" '.assets[] | select(.name == $n) | .browser_download_url' <<<"$release" | head -n1)"
           if [[ -z "$deb_url" ]]; then
             deb_url="$(jq -r '.assets[] | select(.name == "Vaulton-Linux.deb") | .browser_download_url' <<<"$release" | head -n1)"
-            deb_name='Vaulton-Linux.deb'
           fi
           if [[ -z "$rpm_url" ]]; then
             rpm_url="$(jq -r '.assets[] | select(.name == "Vaulton-Linux.rpm") | .browser_download_url' <<<"$release" | head -n1)"
-            rpm_name='Vaulton-Linux.rpm'
           fi
-          [[ -n "$deb_url" ]] || { echo "Release $tag has no Debian package."; exit 1; }
-          [[ -n "$rpm_url" ]] || { echo "Release $tag has no RPM package."; exit 1; }
 
-          mkdir -p _site/apt/pool/main/v/vaulton _site/apt/dists/stable/main/binary-amd64 _site/rpm
-          curl -fsSL "$deb_url" -o "_site/apt/pool/main/v/vaulton/vaulton_${version}_amd64.deb"
-          curl -fsSL "$rpm_url" -o "_site/rpm/vaulton-${version}-1.x86_64.rpm"
+          available=false
+          if [[ -n "$deb_url" && -n "$rpm_url" ]]; then
+            mkdir -p /tmp/vaulton-release
+            curl -fsSL "$deb_url" -o "/tmp/vaulton-release/vaulton.deb"
+            curl -fsSL "$rpm_url" -o "/tmp/vaulton-release/vaulton.rpm"
+            deb_version="$(dpkg-deb -f /tmp/vaulton-release/vaulton.deb Version)"
+            rpm_version="$(rpm -qp --qf '%{VERSION}' /tmp/vaulton-release/vaulton.rpm)"
+            if [[ "$deb_version" == "$version" && "$rpm_version" == "$version" ]] &&
+               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb | grep -q 'libdesktop_drop_plugin.so' &&
+               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb | grep -q 'flutter_assets' &&
+               rpm -qpl /tmp/vaulton-release/vaulton.rpm | grep -q 'libdesktop_drop_plugin.so' &&
+               rpm -qpl /tmp/vaulton-release/vaulton.rpm | grep -q 'flutter_assets'; then
+              available=true
+            else
+              echo "Latest release $tag has incomplete or mismatched Linux packages; repository publication is withheld."
+            fi
+          else
+            echo "Latest release $tag does not yet have both Linux packages."
+          fi
 
-          (
-            cd _site/apt
-            dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
-            gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
-            apt-ftparchive release dists/stable > dists/stable/Release
-          )
-          createrepo_c --database _site/rpm
+          if [[ "$available" == true ]]; then
+            mkdir -p _site/apt/pool/main/v/vaulton _site/apt/dists/stable/main/binary-amd64 _site/rpm
+            cp /tmp/vaulton-release/vaulton.deb "_site/apt/pool/main/v/vaulton/vaulton_${version}_amd64.deb"
+            cp /tmp/vaulton-release/vaulton.rpm "_site/rpm/vaulton-${version}-1.x86_64.rpm"
+            (
+              cd _site/apt
+              dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
+              gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+              apt-ftparchive release dists/stable > dists/stable/Release
+            )
+            createrepo_c --database _site/rpm
+          fi
 
-          cp index.html _site/index.html
-          cp install.sh _site/install.sh
-          cp install.ps1 _site/install.ps1
-          printf 'Published Vaulton %s package repositories.\n' "$version" > _site/version.txt
+          printf '{"available":%s,"version":"%s"}\n' "$available" "$version" > _site/repo-status.json
+          printf 'Published Vaulton %s; Linux repositories available: %s\n' "$version" "$available"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
