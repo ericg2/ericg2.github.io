@@ -46,7 +46,7 @@ baseurl=$REPO_BASE/rpm/
 enabled=1
 gpgcheck=1
 repo_gpgcheck=1
-gpgkey=$REPO_BASE/keys/vaulton-archive-keyring.gpg
+gpgkey=$REPO_BASE/keys/vaulton-archive-key.asc
 type=rpm-md
 EOF
     say "Installing Vaulton..."
