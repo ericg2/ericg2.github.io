@@ -102,6 +102,10 @@ jobs:
         with:
           path: _site
 
+      - name: Let the branch-based Pages build finish first
+        if: github.event_name == 'push'
+        run: sleep 60
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
