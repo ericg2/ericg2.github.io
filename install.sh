@@ -2,7 +2,7 @@
 set -eu
 
 REPO_BASE="https://ericg2.github.io"
-repo_status="$(curl -fsSL "$REPO_BASE/repo-status.json" 2>/dev/null || true)"
+repo_status="$(curl -fsSL -H "Cache-Control: no-cache" "$REPO_BASE/repo-status.json" 2>/dev/null || true)"
 case "$repo_status" in
   *'"available":true'*) ;;
   *) printf '%s\n' "Vaulton Linux packages are being rebuilt and validated. Please use the GitHub Releases page for now: https://github.com/ericg2/Vaulton-UI/releases" >&2; exit 1 ;;
