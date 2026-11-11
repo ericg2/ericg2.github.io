@@ -64,7 +64,7 @@ jobs:
             curl -fsSL "$rpm_url" -o "/tmp/vaulton-release/vaulton.rpm"
             deb_version="$(dpkg-deb -f /tmp/vaulton-release/vaulton.deb Version 2>/dev/null || true)"
             rpm_version="$(rpm -qp --qf '%{VERSION}' /tmp/vaulton-release/vaulton.rpm 2>/dev/null || true)"
-            if [[ "$deb_version" == "$version" && "$rpm_version" == "$version" ]]; then
+            if [[ ( "$deb_version" == "$version" || "$deb_version" == "$version-1" ) && "$rpm_version" == "$version" ]]; then
               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb > /tmp/vaulton-release/deb-files.txt
               rpm -qpl /tmp/vaulton-release/vaulton.rpm > /tmp/vaulton-release/rpm-files.txt
               if grep -q 'libdesktop_drop_plugin.so' /tmp/vaulton-release/deb-files.txt &&
@@ -83,7 +83,7 @@ jobs:
 
           if [[ "$available" == true ]]; then
             mkdir -p _site/apt/pool/main/v/vaulton _site/apt/dists/stable/main/binary-amd64 _site/rpm
-            cp /tmp/vaulton-release/vaulton.deb "_site/apt/pool/main/v/vaulton/vaulton_${version}_amd64.deb"
+            cp /tmp/vaulton-release/vaulton.deb "_site/apt/pool/main/v/vaulton/vaulton_${deb_version}_amd64.deb"
             cp /tmp/vaulton-release/vaulton.rpm "_site/rpm/vaulton-${version}-1.x86_64.rpm"
             (
               cd _site/apt
