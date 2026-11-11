@@ -64,11 +64,13 @@ jobs:
             curl -fsSL "$rpm_url" -o "/tmp/vaulton-release/vaulton.rpm"
             deb_version="$(dpkg-deb -f /tmp/vaulton-release/vaulton.deb Version)"
             rpm_version="$(rpm -qp --qf '%{VERSION}' /tmp/vaulton-release/vaulton.rpm)"
+            dpkg-deb --contents /tmp/vaulton-release/vaulton.deb > /tmp/vaulton-release/deb-files.txt
+            rpm -qpl /tmp/vaulton-release/vaulton.rpm > /tmp/vaulton-release/rpm-files.txt
             if [[ "$deb_version" == "$version" && "$rpm_version" == "$version" ]] &&
-               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb | grep -q 'libdesktop_drop_plugin.so' &&
-               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb | grep -q 'flutter_assets' &&
-               rpm -qpl /tmp/vaulton-release/vaulton.rpm | grep -q 'libdesktop_drop_plugin.so' &&
-               rpm -qpl /tmp/vaulton-release/vaulton.rpm | grep -q 'flutter_assets'; then
+               grep -q 'libdesktop_drop_plugin.so' /tmp/vaulton-release/deb-files.txt &&
+               grep -q 'flutter_assets' /tmp/vaulton-release/deb-files.txt &&
+               grep -q 'libdesktop_drop_plugin.so' /tmp/vaulton-release/rpm-files.txt &&
+               grep -q 'flutter_assets' /tmp/vaulton-release/rpm-files.txt; then
               available=true
             else
               echo "Latest release $tag has incomplete or mismatched Linux packages; repository publication is withheld."
