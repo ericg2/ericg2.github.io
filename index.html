@@ -33,7 +33,7 @@
     <h2>Install on Linux</h2>
     <p>Use the install script to configure the Vaulton package source and install the native package for your distribution.</p>
     <pre>curl -fsSL https://ericg2.github.io/install.sh | sh</pre>
-    <p>Debian and Ubuntu use APT. Fedora and compatible distributions use DNF. Once configured, update Vaulton with your normal package updates.</p>
+    <p>Debian and Ubuntu use APT, Fedora and RHEL use DNF, and openSUSE uses Zypper. Once configured, update Vaulton with your normal package manager.</p>
     <p id="linux-repo-status" class="note">Checking Linux package repository availability…</p>
     <script>
       fetch('/repo-status.json').then(response => response.json()).then(status => {
