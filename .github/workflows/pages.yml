@@ -70,10 +70,12 @@ jobs:
             if [[ ( "$deb_version" == "$version" || "$deb_version" == "$version-1" ) && "$rpm_version" == "$version" ]]; then
               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb > /tmp/vaulton-release/deb-files.txt
               rpm -qpl /tmp/vaulton-release/vaulton.rpm > /tmp/vaulton-release/rpm-files.txt
-              if grep -q 'libdesktop_drop_plugin.so' /tmp/vaulton-release/deb-files.txt &&
-                 grep -q 'flutter_assets' /tmp/vaulton-release/deb-files.txt &&
-                 grep -q 'libdesktop_drop_plugin.so' /tmp/vaulton-release/rpm-files.txt &&
-                 grep -q 'flutter_assets' /tmp/vaulton-release/rpm-files.txt; then
+              if grep -q '/usr/bin/vaulton' /tmp/vaulton-release/deb-files.txt &&
+                 grep -q '/opt/vaulton/lib/libdesktop_drop_plugin.so' /tmp/vaulton-release/deb-files.txt &&
+                 grep -q '/opt/vaulton/data/flutter_assets' /tmp/vaulton-release/deb-files.txt &&
+                 grep -q '/usr/bin/vaulton' /tmp/vaulton-release/rpm-files.txt &&
+                 grep -q '/opt/vaulton/lib/libdesktop_drop_plugin.so' /tmp/vaulton-release/rpm-files.txt &&
+                 grep -q '/opt/vaulton/data/flutter_assets' /tmp/vaulton-release/rpm-files.txt; then
                 available=true
               fi
             fi
