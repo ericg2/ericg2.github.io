@@ -32,7 +32,7 @@ jobs:
       - name: Install repository metadata tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y dpkg-dev apt-utils createrepo-c rpm
+          sudo apt-get install -y dpkg-dev apt-utils createrepo-c rpm gnupg
 
       - name: Build validated APT and DNF repositories
         shell: bash
