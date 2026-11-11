@@ -1,0 +1,94 @@
+name: Publish Vaulton installation site
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Check out site
+        uses: actions/checkout@v4
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Install repository metadata tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y dpkg-dev createrepo-c
+
+      - name: Build APT and DNF repositories
+        shell: bash
+        run: |
+          set -euo pipefail
+          api='https://api.github.com/repos/ericg2/Vaulton-UI/releases/latest'
+          release="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: Vaulton-Pages' "$api")"
+          tag="$(jq -r '.tag_name' <<<"$release")"
+          version="${tag#v}"
+          [[ -n "$version" && "$version" != "$tag" ]] || { echo "Unexpected release tag: $tag"; exit 1; }
+
+          deb_name="vaulton-${version}-linux-amd64.deb"
+          rpm_name="vaulton-${version}-linux-x86_64.rpm"
+          deb_url="$(jq -r --arg n "$deb_name" '.assets[] | select(.name == $n) | .browser_download_url' <<<"$release" | head -n1)"
+          rpm_url="$(jq -r --arg n "$rpm_name" '.assets[] | select(.name == $n) | .browser_download_url' <<<"$release" | head -n1)"
+          if [[ -z "$deb_url" ]]; then
+            deb_url="$(jq -r '.assets[] | select(.name == "Vaulton-Linux.deb") | .browser_download_url' <<<"$release" | head -n1)"
+            deb_name='Vaulton-Linux.deb'
+          fi
+          if [[ -z "$rpm_url" ]]; then
+            rpm_url="$(jq -r '.assets[] | select(.name == "Vaulton-Linux.rpm") | .browser_download_url' <<<"$release" | head -n1)"
+            rpm_name='Vaulton-Linux.rpm'
+          fi
+          [[ -n "$deb_url" ]] || { echo "Release $tag has no Debian package."; exit 1; }
+          [[ -n "$rpm_url" ]] || { echo "Release $tag has no RPM package."; exit 1; }
+
+          mkdir -p _site/apt/pool/main/v/vaulton _site/apt/dists/stable/main/binary-amd64 _site/rpm
+          curl -fsSL "$deb_url" -o "_site/apt/pool/main/v/vaulton/vaulton_${version}_amd64.deb"
+          curl -fsSL "$rpm_url" -o "_site/rpm/vaulton-${version}-1.x86_64.rpm"
+
+          (
+            cd _site/apt
+            dpkg-scanpackages --arch amd64 pool /dev/null > dists/stable/main/binary-amd64/Packages
+            gzip -9c dists/stable/main/binary-amd64/Packages > dists/stable/main/binary-amd64/Packages.gz
+            cat > dists/stable/Release <<EOF
+          Origin: Vaulton
+          Label: Vaulton
+          Suite: stable
+          Codename: stable
+          Architectures: amd64
+          Components: main
+          Description: Vaulton desktop application packages
+          EOF
+          )
+          createrepo_c --database _site/rpm
+
+          cp index.html _site/index.html
+          cp install.sh _site/install.sh
+          cp install.ps1 _site/install.ps1
+          printf 'Published Vaulton %s package repositories.\n' "$version" > _site/version.txt
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
