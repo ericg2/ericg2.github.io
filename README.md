@@ -8,4 +8,4 @@ This repository hosts [https://ericg2.github.io](https://ericg2.github.io).
 
 The Pages workflow periodically imports the latest public Linux release packages and generates APT and DNF repository metadata.
 
-**Repository signing:** The initial repository bootstrap uses HTTPS with APT `Trusted: yes` and DNF `gpgcheck=0`. This is convenient but does not provide package/repository signature verification. Before treating this as a high-assurance distribution channel, add a long-lived signing key as a GitHub Actions secret and enable signed APT Release metadata and RPM package signatures.
+**Repository signing:** The initial repository bootstrap uses HTTPS with APT `Trusted: yes` and DNF/Zypper `gpgcheck=0`. This is convenient but does not provide package/repository signature verification. Before treating this as a high-assurance distribution channel, add a long-lived signing key as a GitHub Actions secret and enable signed APT Release metadata and RPM package signatures.
