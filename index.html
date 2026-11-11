@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Install Vaulton on Windows, Linux, and Android. Manage your files and backups on a server you control.">
+  <title>Vaulton — Downloads & Installation</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1020;--panel:#131c30;--line:#27344d;--text:#edf3ff;--muted:#a9b7ce;--accent:#83b7ff;--accent2:#b6d5ff}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#172744 0,#0b1020 55%);color:var(--text);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{max-width:980px;margin:auto;padding:64px 24px 80px}.eyebrow{color:var(--accent);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}
+    h1{font-size:clamp(2.8rem,7vw,5rem);line-height:1.05;letter-spacing:-.06em;margin:.35rem 0 1rem}h2{font-size:1.45rem;letter-spacing:-.02em;margin:0 0 .6rem}
+    p{color:var(--muted);margin:.5rem 0 1rem}.lead{font-size:1.2rem;max-width:650px}.links{display:flex;gap:12px;flex-wrap:wrap;margin:28px 0 42px}
+    a{color:var(--accent2)}.button{display:inline-block;text-decoration:none;border:1px solid #5276a8;border-radius:10px;padding:11px 16px;color:#07111f;background:var(--accent);font-weight:750}.button.secondary{background:transparent;color:var(--text);border-color:var(--line)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.card{background:linear-gradient(145deg,#17243a,#111a2b);border:1px solid var(--line);border-radius:16px;padding:22px}.card p{min-height:52px}
+    code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,monospace}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#080e1b;border:1px solid var(--line);border-radius:10px;padding:14px;color:#d5e5ff;font-size:.9rem}
+    .section{margin-top:54px}.note{font-size:.9rem;border-left:3px solid #6389ba;padding:8px 14px;background:#121e31;border-radius:0 8px 8px 0}
+    footer{margin-top:60px;border-top:1px solid var(--line);padding-top:20px;color:var(--muted);font-size:.9rem}
+  </style>
+</head>
+<body>
+<main>
+  <div class="eyebrow">Private storage, on your terms</div>
+  <h1>Vaulton</h1>
+  <p class="lead">Your files. Your backups. Your server. Install the Vaulton app and connect to a Vaulton server you control.</p>
+  <div class="links">
+    <a class="button" href="https://github.com/ericg2/Vaulton-UI/releases/latest">Download latest release</a>
+    <a class="button secondary" href="https://github.com/ericg2/Vaulton">Server setup</a>
+    <a class="button secondary" href="https://github.com/ericg2/Vaulton-UI">Source code</a>
+  </div>
+  <section class="section">
+    <h2>Install on Linux</h2>
+    <p>Use the install script to configure the Vaulton package source and install the native package for your distribution.</p>
+    <pre>curl -fsSL https://ericg2.github.io/install.sh | sh</pre>
+    <p>Debian and Ubuntu use APT. Fedora and compatible distributions use DNF. Once configured, update Vaulton with your normal package updates.</p>
+    <p class="note">The hosted APT and RPM repositories currently use HTTPS transport but do not yet publish signed repository metadata. APT and DNF repository signature verification is therefore disabled by the installer. For higher-assurance deployments, download packages from the GitHub Releases page and verify the published SHA-256 checksum.</p>
+  </section>
+  <section class="section grid">
+    <article class="card"><h2>Windows</h2><p>Download the versioned Windows installer and run it. The installer keeps Vaulton updated without a separate updater service.</p><a href="https://github.com/ericg2/Vaulton-UI/releases/latest">Windows downloads →</a><pre>irm https://ericg2.github.io/install.ps1 | iex</pre></article>
+    <article class="card"><h2>Android</h2><p>Download the signed APK. Vaulton checks for releases, downloads and verifies updates, then asks Android to confirm installation.</p><a href="https://github.com/ericg2/Vaulton-UI/releases/latest">Android downloads →</a></article>
+    <article class="card"><h2>Other platforms</h2><p>Release archives and checksums are published alongside supported platform installers.</p><a href="https://github.com/ericg2/Vaulton-UI/releases">All releases →</a></article>
+  </section>
+  <section class="section">
+    <h2>Get started</h2>
+    <p>Install and run Vaulton, enter your server address, and sign in. If you still need a server, follow the <a href="https://github.com/ericg2/Vaulton">Vaulton server setup guide</a>.</p>
+  </section>
+  <footer>© 2026 Eric E. Gold · <a href="https://github.com/ericg2/Vaulton-UI/issues">Support and issue reports</a></footer>
+</main>
+</body>
+</html>
