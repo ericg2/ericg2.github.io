@@ -34,6 +34,17 @@
     <p>Use the install script to configure the Vaulton package source and install the native package for your distribution.</p>
     <pre>curl -fsSL https://ericg2.github.io/install.sh | sh</pre>
     <p>Debian and Ubuntu use APT. Fedora and compatible distributions use DNF. Once configured, update Vaulton with your normal package updates.</p>
+    <p id="linux-repo-status" class="note">Checking Linux package repository availability…</p>
+    <script>
+      fetch('/repo-status.json').then(response => response.json()).then(status => {
+        const target = document.getElementById('linux-repo-status');
+        target.textContent = status.available
+          ? 'Linux package repositories are live for Vaulton ' + status.version + '.'
+          : 'The latest Linux packages are still being rebuilt and validated. Use the GitHub Releases page for manual downloads in the meantime.';
+      }).catch(() => {
+        document.getElementById('linux-repo-status').textContent = 'Linux package repository status is temporarily unavailable.';
+      });
+    </script>
     <p class="note">The hosted APT and RPM repositories currently use HTTPS transport but do not yet publish signed repository metadata. APT and DNF repository signature verification is therefore disabled by the installer. For higher-assurance deployments, download packages from the GitHub Releases page and verify the published SHA-256 checksum.</p>
   </section>
   <section class="section grid">
