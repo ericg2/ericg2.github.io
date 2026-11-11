@@ -36,7 +36,7 @@
     <p>Debian and Ubuntu use APT, Fedora and RHEL use DNF, and openSUSE uses Zypper. Once configured, update Vaulton with your normal package manager.</p>
     <p id="linux-repo-status" class="note">Checking Linux package repository availability…</p>
     <script>
-      fetch('/repo-status.json').then(response => response.json()).then(status => {
+      fetch('/repo-status.json', { cache: 'no-store' }).then(response => response.json()).then(status => {
         const target = document.getElementById('linux-repo-status');
         target.textContent = status.available
           ? 'Linux package repositories are live for Vaulton ' + status.version + '.'
