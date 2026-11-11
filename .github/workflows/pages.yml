@@ -71,10 +71,6 @@ jobs:
               dpkg-deb --contents /tmp/vaulton-release/vaulton.deb > /tmp/vaulton-release/deb-files.txt
               rpm -qpl /tmp/vaulton-release/vaulton.rpm > /tmp/vaulton-release/rpm-files.txt
               echo "Package versions: DEB=$deb_version RPM=$rpm_version expected=$version"
-              echo "DEB package paths:"
-              grep -E 'vaulton|flutter_assets|desktop_drop' /tmp/vaulton-release/deb-files.txt || true
-              echo "RPM package paths:"
-              grep -E 'vaulton|flutter_assets|desktop_drop' /tmp/vaulton-release/rpm-files.txt || true
               if grep -q '/usr/bin/vaulton' /tmp/vaulton-release/deb-files.txt &&
                  grep -q '/opt/vaulton/lib/libdesktop_drop_plugin.so' /tmp/vaulton-release/deb-files.txt &&
                  grep -q '/opt/vaulton/data/flutter_assets' /tmp/vaulton-release/deb-files.txt &&
