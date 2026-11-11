@@ -36,10 +36,13 @@ jobs:
 
       - name: Build validated APT and DNF repositories
         shell: bash
+        env:
+          VAULTON_REPO_SIGNING_KEY_BASE64: ${{ secrets.VAULTON_REPO_SIGNING_KEY_BASE64 }}
         run: |
           set -euo pipefail
           mkdir -p _site
           cp index.html install.sh install.ps1 _site/
+          if [[ -f keys/vaulton-archive-keyring.gpg ]]; then mkdir -p _site/keys; cp keys/vaulton-archive-keyring.gpg _site/keys/; fi
           api='https://api.github.com/repos/ericg2/Vaulton-UI/releases/latest'
           release="$(curl -fsSL -H 'Accept: application/vnd.github+json' -H 'User-Agent: Vaulton-Pages' "$api")"
           tag="$(jq -r '.tag_name' <<<"$release")"
@@ -100,10 +103,34 @@ jobs:
           EOF
               apt-ftparchive release dists/stable >> dists/stable/Release
             )
+            if [[ -n "${VAULTON_REPO_SIGNING_KEY_BASE64:-}" ]]; then
+              test -s _site/keys/vaulton-archive-keyring.gpg || { echo "Repository signing secret is set but the public key file is missing."; exit 1; }
+              mkdir -m 700 /tmp/vaulton-gnupg
+              export GNUPGHOME=/tmp/vaulton-gnupg
+              printf '%s' "$VAULTON_REPO_SIGNING_KEY_BASE64" | base64 --decode > /tmp/vaulton-private.asc
+              chmod 600 /tmp/vaulton-private.asc
+              gpg --batch --import /tmp/vaulton-private.asc
+              fingerprint="$(gpg --batch --with-colons --list-secret-keys | awk -F: '$1 == "fpr" {print $10; exit}')"
+              public_fingerprint="$(gpg --batch --show-keys --with-colons _site/keys/vaulton-archive-keyring.gpg | awk -F: '$1 == "fpr" {print $10; exit}')"
+              [[ -n "$fingerprint" && "$fingerprint" == "$public_fingerprint" ]] || { echo "Public and private repository signing keys do not match."; exit 1; }
+
+              rpm_file="$(find _site/rpm -maxdepth 1 -name '*.rpm' -print -quit)"
+              test -n "$rpm_file"
+              rpm --import _site/keys/vaulton-archive-keyring.gpg
+              rpmsign --define "_gpg_name $fingerprint" --addsign "$rpm_file"
+
+              gpg --batch --yes --local-user "$fingerprint" --clearsign --output _site/apt/dists/stable/InRelease _site/apt/dists/stable/Release
+              gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output _site/apt/dists/stable/Release.gpg _site/apt/dists/stable/Release
+            fi
             createrepo_c --database _site/rpm
+            if [[ -n "${VAULTON_REPO_SIGNING_KEY_BASE64:-}" ]]; then
+              gpg --batch --yes --local-user "$fingerprint" --armor --detach-sign --output _site/rpm/repodata/repomd.xml.asc _site/rpm/repodata/repomd.xml
+            fi
           fi
 
-          printf '{"available":%s,"version":"%s"}\n' "$available" "$version" > _site/repo-status.json
+          signed=false
+          [[ -n "${VAULTON_REPO_SIGNING_KEY_BASE64:-}" && "$available" == true ]] && signed=true
+          printf '{"available":%s,"version":"%s","signed":%s}\n' "$available" "$version" "$signed" > _site/repo-status.json
           printf 'Published Vaulton %s; Linux repositories available: %s\n' "$version" "$available"
 
       - name: Upload Pages artifact
