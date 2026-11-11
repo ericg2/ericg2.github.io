@@ -4,8 +4,8 @@ set -eu
 REPO_BASE="https://ericg2.github.io"
 repo_status="$(curl -fsSL -H "Cache-Control: no-cache" "$REPO_BASE/repo-status.json" 2>/dev/null || true)"
 case "$repo_status" in
-  *'"available":true'*) ;;
-  *) printf '%s\n' "Vaulton Linux packages are being rebuilt and validated. Please use the GitHub Releases page for now: https://github.com/ericg2/Vaulton-UI/releases" >&2; exit 1 ;;
+  *'"available":true'*'"signed":true'*) ;;
+  *) printf '%s\n' "Vaulton Linux packages are not yet available with signature verification enabled. Use GitHub Releases for manual downloads: https://github.com/ericg2/Vaulton-UI/releases" >&2; exit 1 ;;
 esac
 APT_SOURCE="/etc/apt/sources.list.d/vaulton.sources"
 DNF_SOURCE="/etc/yum.repos.d/vaulton.repo"
@@ -26,8 +26,10 @@ case "$ids" in
     command -v apt-get >/dev/null 2>&1 || fail "APT is not installed."
     command -v sudo >/dev/null 2>&1 || fail "Install sudo, then run this script again."
     say "Configuring the Vaulton APT repository..."
-    sudo install -d -m 0755 /etc/apt/sources.list.d
-    printf '%s\n' 'Types: deb' 'URIs: https://ericg2.github.io/apt' 'Suites: stable' 'Components: main' 'Architectures: amd64' 'Trusted: yes' | sudo tee "$APT_SOURCE" >/dev/null
+    sudo install -d -m 0755 /etc/apt/sources.list.d /etc/apt/keyrings
+    curl -fsSL "$REPO_BASE/keys/vaulton-archive-keyring.gpg" | sudo tee /etc/apt/keyrings/vaulton.gpg >/dev/null
+    sudo chmod 0644 /etc/apt/keyrings/vaulton.gpg
+    printf '%s\n' 'Types: deb' 'URIs: https://ericg2.github.io/apt' 'Suites: stable' 'Components: main' 'Architectures: amd64' 'Signed-By: /etc/apt/keyrings/vaulton.gpg' | sudo tee "$APT_SOURCE" >/dev/null
     say "Installing Vaulton..."
     sudo apt-get update
     sudo apt-get install -y vaulton
@@ -42,8 +44,9 @@ case "$ids" in
 name=Vaulton
 baseurl=$REPO_BASE/rpm/
 enabled=1
-gpgcheck=0
-repo_gpgcheck=0
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=$REPO_BASE/keys/vaulton-archive-keyring.gpg
 type=rpm-md
 EOF
     say "Installing Vaulton..."
@@ -60,8 +63,9 @@ EOF
 name=Vaulton
 baseurl=$REPO_BASE/rpm/
 enabled=1
-gpgcheck=0
-repo_gpgcheck=0
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=$REPO_BASE/keys/vaulton-archive-keyring.gpg
 metadata_expire=30m
 EOF
     say "Installing Vaulton..."
