@@ -2,8 +2,8 @@ name: Publish Vaulton installation site
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '*/30 * * * *'
+  repository_dispatch:
+    types: [vaulton-release-assets-ready]
   push:
     branches: [main]
 
