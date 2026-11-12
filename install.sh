@@ -22,7 +22,7 @@ fi
 ids=" ${ID:-} ${ID_LIKE:-} "
 
 case "$ids" in
-  *" debian "*|*" ubuntu "*|*" linuxmint "*|*" pop *)
+  *" debian "*|*" ubuntu "*|*" linuxmint "*|*" pop "*)
     command -v apt-get >/dev/null 2>&1 || fail "APT is not installed."
     command -v sudo >/dev/null 2>&1 || fail "Install sudo, then run this script again."
     say "Configuring the Vaulton APT repository..."
